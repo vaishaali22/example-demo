@@ -5,20 +5,39 @@ const mongoose = require('mongoose');
 
 const app = express();
 
-mongoose.connect("mongodb+srv://admin:admin@cluster0-io49c.mongodb.net/test?retryWrites=true&w=majority", {
+app.use(bodyParser.urlencoded({ extended: true }))
+
+mongoose.connect("mongodb+srv://admin:demo@cluster0-9dblz.mongodb.net/test?retryWrites=true&w=majority", {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => { console.log("DB connected") }).catch((err) => { console.log(err) });
 
-app.use(bodyParser.urlencoded({ extended: true }))
+const dataSchema = new mongoose.Schema({
+    name:"String",
+    team:"String"
+})
+
+var User = mongoose.model("User",dataSchema)
+
 
 app.use(express.static('views'));
 
 app.get('/', (req, res) => {
-    res.render('index.ejs');
+    User.find({},(err,data)=>{
+        if(err){
+            console.log("cant find data",err)
+        }
+        else{
+            res.render("index.ejs",{user:data})
+        }
+    })
 })
 
 app.post('/test', (req, res) => {
+    var newUser = new User({
+        name:req.body.name,
+        team:req.body.team
+    }).save().then(savedData => console.log("data saved", savedData)).catch(err => console.log(err))
     console.log(req.body);
     res.redirect('/');
 })
